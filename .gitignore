@@ -1,0 +1,35 @@
+# Dependency folders
+node_modules/
+jspm_packages/
+
+# Environment variables (సీక్రెట్ కీలు భద్రంగా ఉండటానికి)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Local uploads and temporary files
+# వీడియోలు మరియు ఆడియోలు సర్వర్‌లోకి వెళ్లకుండా ఆపుతుంది
+uploads/*.mp4
+uploads/*.m4a
+uploads/*.mp3
+uploads/*.wav
+uploads/*.png
+uploads/*.jpg
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Build files (ఒకవేళ మీరు TypeScript వాడితే)
+dist/
+build/
+
+
+
