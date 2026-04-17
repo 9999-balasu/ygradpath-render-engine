@@ -135,6 +135,13 @@ require("dotenv").config();
 
 const app = express();
 
+const fs = require("fs");
+
+// ✅ create uploads folder if not exists
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
 // Database Connection
 connectDB();
 
