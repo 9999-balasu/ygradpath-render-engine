@@ -55,8 +55,9 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
+// ఇది మెయిన్ URL ఓపెన్ చేసినప్పుడు ఏం జరగాలో చెబుతుంది
+app.get('/', (req, res) => {
+  res.send('Backend విజయవంతంగా పనిచేస్తోంది!');
 });
 
 // serve uploads
@@ -69,3 +70,11 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(`Server running on port ${PORT}`)
 );
+
+
+// మునుపటి కోడ్ అలాగే ఉంచి, చివరన ఇలా మార్చండి:
+const PORT = process.env.PORT || 10000; // 5000 బదులు 10000 వాడటం మంచిది
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
