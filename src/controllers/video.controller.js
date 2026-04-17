@@ -97,10 +97,11 @@ exports.mergeTimeline = async (req, res) => {
     const videos = req.files["videos"] || [];
     const audios = req.files["audios"] || [];
     const metadata = JSON.parse(req.body.audioMetadata || "[]");
-    const outputPath = path.resolve(`uploads/render-${Date.now()}.mp4`);
+    //const outputPath = path.resolve(`uploads/render-${Date.now()}.mp4`);
+    const outputPath = path.join(__dirname, "../uploads", `render-${Date.now()}.mp4`);
 
     // 1. Get exact video durations
-    const videoData = await Promise.all(videos.map(v => ffprobe(path.resolve(v.path))));
+    const videoData = await Promise.all(videos.map(v => ffprobe(v.path)));
     const durations = videoData.map(d => parseFloat(d.format.duration));
 
     let filters = [];
@@ -148,7 +149,7 @@ exports.mergeTimeline = async (req, res) => {
 
     // 5. Execute FFmpeg
     let command = ffmpeg();
-    [...videos, ...audios].forEach(f => command.input(path.resolve(f.path)));
+    [...videos, ...audios].forEach(f => command.input(f.path));
 
     command
       .complexFilter(filters)
