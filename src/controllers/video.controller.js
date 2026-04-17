@@ -85,39 +85,178 @@
 
 
 
+// const ffmpeg = require("fluent-ffmpeg");
+// const path = require("path");
+// const fs = require("fs"); // ఫైల్స్ డిలీట్ చేయడానికి
+// const { promisify } = require("util");
+// const ffprobe = promisify(ffmpeg.ffprobe);
+// const cloudinary = require("../config/cloudinary"); // మీ క్లౌడినరీ కాన్ఫిగరేషన్
+
+
+
+
+
+// // ✅ always correct path
+// const getFilePath = (file) => {
+//   return path.join(__dirname, "../uploads", path.basename(file.path));
+// };
+
+// exports.mergeTimeline = async (req, res) => {
+//   try {
+//     const videos = req.files["videos"] || [];
+//     const audios = req.files["audios"] || [];
+//     const metadata = JSON.parse(req.body.audioMetadata || "[]");
+//     //const outputPath = path.resolve(`uploads/render-${Date.now()}.mp4`);
+//     // const outputPath = path.join(__dirname, "../uploads", `render-${Date.now()}.mp4`);
+
+//     const outputPath = path.join(__dirname, "../uploads", `render-${Date.now()}.mp4`);
+
+//     // 1. Get exact video durations
+//     // const videoData = await Promise.all(videos.map(v => ffprobe(v.path)));
+
+//     const videoData = await Promise.all(
+//   videos.map(v => {
+//     console.log("VIDEO PATH:", v.path); // debug
+//     return  ffprobe(getFullPath(v));;
+//   })
+// );
+//     const durations = videoData.map(d => parseFloat(d.format.duration));
+
+//     let filters = [];
+//     let audioStreams = [];
+//     const vCount = videos.length;
+
+//     // 2. Video Processing
+//     let videoConcatStr = "";
+//     videos.forEach((_, i) => {
+//       filters.push(
+//         { filter: "scale", options: "1280:720:force_original_aspect_ratio=decrease", inputs: `${i}:v`, outputs: `v${i}s` },
+//         { filter: "pad", options: "1280:720:(ow-iw)/2:(oh-ih)/2:black", inputs: `v${i}s`, outputs: `v${i}f` }
+//       );
+//       videoConcatStr += `[v${i}f]`;
+//     });
+//     filters.push({ filter: "concat", options: { n: vCount, v: 1, a: 0 }, inputs: videoConcatStr, outputs: "v_merged" });
+
+//     // 3. Audio Processing
+//     audios.forEach((_, i) => {
+//       const meta = metadata[i];
+//       let anchorStart = 0;
+//       for (let j = 0; j < meta.videoIndex; j++) {
+//         anchorStart += durations[j];
+//       }
+
+//       const totalDelay = Math.round((anchorStart + meta.offset) * 1000);
+//       filters.push({
+//         filter: "adelay",
+//         options: `${totalDelay}|${totalDelay}`,
+//         inputs: `${vCount + i}:a`,
+//         outputs: `a${i}`
+//       });
+//       audioStreams.push(`[a${i}]`);
+//     });
+
+//     // 4. Mix all audios
+//     if (audioStreams.length > 0) {
+//       filters.push({
+//         filter: "amix",
+//         options: { inputs: audioStreams.length, duration: "longest" },
+//         inputs: audioStreams.join(""),
+//         outputs: "a_final"
+//       });
+//     }
+
+//     // 5. Execute FFmpeg
+//     let command = ffmpeg();
+//     // [...videos, ...audios].forEach(f => command.input(f.path));
+
+// //     [...videos, ...audios].forEach(f => {
+// //   console.log("INPUT PATH:", f.path); // debug
+// //   command.input(f.path);
+// // });
+
+
+// [...videos, ...audios].forEach(f => {
+//   const fullPath = path.join(process.cwd(), f.path); // ✅ FIX
+//   console.log("FULL INPUT PATH:", fullPath);
+//   command.input(fullPath);
+// });
+
+//     command
+//       .complexFilter(filters)
+//       .outputOptions([
+//         "-map [v_merged]",
+//         audioStreams.length > 0 ? "-map [a_final]" : "-map 0:a",
+//         "-c:v libx264",
+//         "-preset ultrafast", // వేగంగా రెండర్ అవ్వడానికి
+//         "-pix_fmt yuv420p",
+//         "-shortest"
+//       ])
+//       .on("end", async () => {
+//         try {
+//           // Cloudinaryకి అప్‌లోడ్
+//           const result = await cloudinary.uploader.upload(outputPath, {
+//             resource_type: "video",
+//             folder: "rendered_videos"
+//           });
+
+//           // లోకల్ ఫైల్స్ క్లీనప్ (Delete)
+//           if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+//           videos.forEach(v => { if (fs.existsSync(v.path)) fs.unlinkSync(v.path); });
+//           audios.forEach(a => { if (fs.existsSync(a.path)) fs.unlinkSync(a.path); });
+
+//           // Cloudinary URL పంపడం
+//           res.json({ url: result.secure_url });
+//         } catch (uploadErr) {
+//           res.status(500).json({ error: "Cloudinary upload failed" });
+//         }
+//       })
+//       .on("error", (err) => res.status(500).json({ error: err.message }))
+//       .save(outputPath);
+
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+
+
+
 const ffmpeg = require("fluent-ffmpeg");
 const path = require("path");
-const fs = require("fs"); // ఫైల్స్ డిలీట్ చేయడానికి
+const fs = require("fs");
 const { promisify } = require("util");
 const ffprobe = promisify(ffmpeg.ffprobe);
-const cloudinary = require("../config/cloudinary"); // మీ క్లౌడినరీ కాన్ఫిగరేషన్
+const cloudinary = require("../config/cloudinary");
+
+// ✅ ALWAYS use this for correct path
+const getFilePath = (file) => {
+  return path.join(__dirname, "../uploads", path.basename(file.path));
+};
 
 exports.mergeTimeline = async (req, res) => {
   try {
     const videos = req.files["videos"] || [];
     const audios = req.files["audios"] || [];
     const metadata = JSON.parse(req.body.audioMetadata || "[]");
-    //const outputPath = path.resolve(`uploads/render-${Date.now()}.mp4`);
-    // const outputPath = path.join(__dirname, "../uploads", `render-${Date.now()}.mp4`);
 
     const outputPath = path.join(__dirname, "../uploads", `render-${Date.now()}.mp4`);
 
-    // 1. Get exact video durations
-    // const videoData = await Promise.all(videos.map(v => ffprobe(v.path)));
-
+    // ✅ 1. Get video durations
     const videoData = await Promise.all(
-  videos.map(v => {
-    console.log("VIDEO PATH:", v.path); // debug
-    return ffprobe(v.path);
-  })
-);
+      videos.map(v => {
+        const fullPath = getFilePath(v);
+        console.log("VIDEO PATH:", fullPath);
+        return ffprobe(fullPath);
+      })
+    );
+
     const durations = videoData.map(d => parseFloat(d.format.duration));
 
     let filters = [];
     let audioStreams = [];
     const vCount = videos.length;
 
-    // 2. Video Processing
+    // ✅ 2. Video processing
     let videoConcatStr = "";
     videos.forEach((_, i) => {
       filters.push(
@@ -126,27 +265,36 @@ exports.mergeTimeline = async (req, res) => {
       );
       videoConcatStr += `[v${i}f]`;
     });
-    filters.push({ filter: "concat", options: { n: vCount, v: 1, a: 0 }, inputs: videoConcatStr, outputs: "v_merged" });
 
-    // 3. Audio Processing
+    filters.push({
+      filter: "concat",
+      options: { n: vCount, v: 1, a: 0 },
+      inputs: videoConcatStr,
+      outputs: "v_merged"
+    });
+
+    // ✅ 3. Audio processing
     audios.forEach((_, i) => {
       const meta = metadata[i];
       let anchorStart = 0;
+
       for (let j = 0; j < meta.videoIndex; j++) {
         anchorStart += durations[j];
       }
 
       const totalDelay = Math.round((anchorStart + meta.offset) * 1000);
+
       filters.push({
         filter: "adelay",
         options: `${totalDelay}|${totalDelay}`,
         inputs: `${vCount + i}:a`,
         outputs: `a${i}`
       });
+
       audioStreams.push(`[a${i}]`);
     });
 
-    // 4. Mix all audios
+    // ✅ 4. Mix audio
     if (audioStreams.length > 0) {
       filters.push({
         filter: "amix",
@@ -156,14 +304,14 @@ exports.mergeTimeline = async (req, res) => {
       });
     }
 
-    // 5. Execute FFmpeg
+    // ✅ 5. FFmpeg command
     let command = ffmpeg();
-    // [...videos, ...audios].forEach(f => command.input(f.path));
 
     [...videos, ...audios].forEach(f => {
-  console.log("INPUT PATH:", f.path); // debug
-  command.input(f.path);
-});
+      const fullPath = getFilePath(f);
+      console.log("INPUT PATH:", fullPath);
+      command.input(fullPath);
+    });
 
     command
       .complexFilter(filters)
@@ -171,33 +319,49 @@ exports.mergeTimeline = async (req, res) => {
         "-map [v_merged]",
         audioStreams.length > 0 ? "-map [a_final]" : "-map 0:a",
         "-c:v libx264",
-        "-preset ultrafast", // వేగంగా రెండర్ అవ్వడానికి
+        "-preset ultrafast",
         "-pix_fmt yuv420p",
         "-shortest"
       ])
+      .on("start", cmd => console.log("FFmpeg START:", cmd))
       .on("end", async () => {
         try {
-          // Cloudinaryకి అప్‌లోడ్
+          console.log("Rendering done");
+
+          // ✅ Upload to Cloudinary
           const result = await cloudinary.uploader.upload(outputPath, {
             resource_type: "video",
             folder: "rendered_videos"
           });
 
-          // లోకల్ ఫైల్స్ క్లీనప్ (Delete)
+          // ✅ Cleanup files
           if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-          videos.forEach(v => { if (fs.existsSync(v.path)) fs.unlinkSync(v.path); });
-          audios.forEach(a => { if (fs.existsSync(a.path)) fs.unlinkSync(a.path); });
 
-          // Cloudinary URL పంపడం
+          videos.forEach(v => {
+            const fullPath = getFilePath(v);
+            if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+          });
+
+          audios.forEach(a => {
+            const fullPath = getFilePath(a);
+            if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+          });
+
           res.json({ url: result.secure_url });
-        } catch (uploadErr) {
+
+        } catch (err) {
+          console.log("Cloudinary Error:", err);
           res.status(500).json({ error: "Cloudinary upload failed" });
         }
       })
-      .on("error", (err) => res.status(500).json({ error: err.message }))
+      .on("error", err => {
+        console.log("FFmpeg ERROR:", err);
+        res.status(500).json({ error: err.message });
+      })
       .save(outputPath);
 
   } catch (error) {
+    console.log("SERVER ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 };
