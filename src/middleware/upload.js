@@ -50,18 +50,54 @@
 
 
 
+// const multer = require("multer");
+// const path = require("path");
+
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "uploads/"),
+//   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname)
+// });
+
+// const upload = multer({ storage });
+
+// // MUST USE FIELDS to capture multiple arrays
+// module.exports = upload.fields([
+//   { name: "videos", maxCount: 20 },
+//   { name: "audios", maxCount: 20 }
+// ]);
+
+
+
 const multer = require("multer");
+const fs = require("fs");
 const path = require("path");
 
+// ✅ absolute path (VERY IMPORTANT for Render)
+const uploadDir = path.join(__dirname, "../uploads");
+
+// ✅ ensure folder exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// ✅ clean + safe storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname)
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const cleanName = file.originalname
+      .replace(/[^\w\s.-]/g, "")  // remove special characters
+      .replace(/\s+/g, "_");      // replace spaces
+
+    cb(null, Date.now() + "-" + cleanName);
+  },
 });
 
 const upload = multer({ storage });
 
-// MUST USE FIELDS to capture multiple arrays
+// ✅ match frontend keys
 module.exports = upload.fields([
   { name: "videos", maxCount: 20 },
-  { name: "audios", maxCount: 20 }
+  { name: "audios", maxCount: 20 },
 ]);
