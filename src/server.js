@@ -165,6 +165,27 @@ app.use("/uploads", express.static("uploads"));
 // API Routes
 app.use("/api/video", require("./routes/video.routes"));
 
+
+
+
+//trim start
+app.use("/api", require("./routes/trim"));
+
+
+const path = require("path");
+app.use(
+  "/uploads",
+  express.static(
+    path.join(__dirname, "uploads")
+  )
+);
+
+// This tells the browser: "If you ask for /uploads, look in the root folder /uploads"
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+
+
+// trim end
 // Port
 const PORT = process.env.PORT || 10000;
 
