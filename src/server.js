@@ -128,65 +128,129 @@
 
 
 
+// const express = require("express");
+// const cors = require("cors");
+// const connectDB = require("./config/db");
+// require("dotenv").config();
+
+// const app = express();
+
+// const fs = require("fs");
+
+// // ✅ create uploads folder if not exists
+// if (!fs.existsSync("uploads")) {
+//   fs.mkdirSync("uploads");
+// }
+
+// // Database Connection
+// connectDB();
+
+// // ✅ Middleware (ONLY ONCE, CLEAN)
+// app.use(cors({
+//   origin: "*",
+//   methods: ["GET", "POST"],
+// }));
+
+// app.use(express.json({ limit: "100mb" }));
+// app.use(express.urlencoded({ limit: "100mb", extended: true }));
+
+// // Home Route
+// app.get('/', (req, res) => {
+//   res.send('Backend విజయవంతంగా పనిచేస్తోంది!');
+// });
+
+// // Serve uploads
+// app.use("/uploads", express.static("uploads"));
+
+// // API Routes
+// app.use("/api/video", require("./routes/video.routes"));
+
+
+
+
+// //trim start
+// app.use("/api", require("./routes/trim"));
+
+
+// const path = require("path");
+// app.use(
+//   "/uploads",
+//   express.static(
+//     path.join(__dirname, "uploads")
+//   )
+// );
+
+// // This tells the browser: "If you ask for /uploads, look in the root folder /uploads"
+// app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+
+
+// // trim end
+// // Port
+// const PORT = process.env.PORT || 10000;
+
+// app.listen(PORT, "0.0.0.0", () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+
+
+
+
+
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 require("dotenv").config();
 
+const fs = require("fs");
+const path = require("path");
+
 const app = express();
 
-const fs = require("fs");
-
-// ✅ create uploads folder if not exists
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
-
-// Database Connection
+// Database
 connectDB();
 
-// ✅ Middleware (ONLY ONCE, CLEAN)
+// --------------------
+// ✅ Uploads folder (ONLY ONE)
+// --------------------
+const uploadsDir = path.join(process.cwd(), "uploads");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// --------------------
+// Middleware
+// --------------------
 app.use(cors({
   origin: "*",
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 
 app.use(express.json({ limit: "100mb" }));
-app.use(express.urlencoded({ limit: "100mb", extended: true }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
-// Home Route
-app.get('/', (req, res) => {
-  res.send('Backend విజయవంతంగా పనిచేస్తోంది!');
+// --------------------
+// Home route
+// --------------------
+app.get("/", (req, res) => {
+  res.send("Backend విజయవంతంగా పనిచేస్తోంది!");
 });
 
-// Serve uploads
-app.use("/uploads", express.static("uploads"));
+// --------------------
+// Static uploads (ONLY ONE)
+// --------------------
+app.use("/uploads", express.static(uploadsDir));
 
+// --------------------
 // API Routes
+// --------------------
 app.use("/api/video", require("./routes/video.routes"));
-
-
-
-
-//trim start
 app.use("/api", require("./routes/trim"));
 
-
-const path = require("path");
-app.use(
-  "/uploads",
-  express.static(
-    path.join(__dirname, "uploads")
-  )
-);
-
-// This tells the browser: "If you ask for /uploads, look in the root folder /uploads"
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-
-
-
-// trim end
-// Port
+// --------------------
+// Port (Render safe)
+// --------------------
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, "0.0.0.0", () => {
