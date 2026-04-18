@@ -366,9 +366,21 @@ exports.trimVideo = async (req, res) => {
         if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
 
         // Return the FULL URL directly
-        return res.json({
-          file: `http://localhost:10000/uploads/${outputFilename}`,
-        });
+        // return res.json({
+        //   file: `http://localhost:10000/uploads/${outputFilename}`,
+        // });
+
+
+
+const baseUrl =
+  process.env.NODE_ENV === "production"
+    ? "https://ygradpath-render-engine.onrender.com"
+    : "http://localhost:10000";
+
+return res.json({
+  file: `${baseUrl}/uploads/${outputFilename}`,
+});
+
       })
       .on("error", (err) => {
         console.error("FFMPEG ERROR:", err);
