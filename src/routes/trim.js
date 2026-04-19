@@ -1,19 +1,12 @@
-const router=require("express").Router();
+const router = require("express").Router();
+const multer = require("multer");
 
-const multer=require("multer");
-
-const upload=multer({
-dest:"uploads/"
+const upload = multer({
+  dest: "uploads/",
 });
 
-const {
-trimVideo
-}=require("../controllers/trimController");
+const { trimVideo } = require("../controllers/trimController");
 
-router.post(
-"/trim",
-upload.single("video"),
-trimVideo
-);
+router.post("/trim", upload.single("video"), trimVideo);
 
-module.exports=router;
+module.exports = router;

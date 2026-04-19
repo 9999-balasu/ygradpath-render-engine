@@ -246,7 +246,10 @@ app.use("/uploads", express.static(uploadsDir));
 // API Routes
 // --------------------
 app.use("/api/video", require("./routes/video.routes"));
-app.use("/api", require("./routes/trim"));
+ app.use("/api", require("./routes/trim"));
+
+
+
 
 // --------------------
 // Port (Render safe)
